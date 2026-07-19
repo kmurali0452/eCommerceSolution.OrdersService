@@ -35,7 +35,7 @@ public class OrdersController : ControllerBase
   {
     FilterDefinition<Order> filter = Builders<Order>.Filter.Eq(temp => temp.OrderID, orderID);
 
-        if (Environment.GetEnvironmentVariable("MONGODB_HOST") == null)
+        if (Environment.GetEnvironmentVariable("MONGODB_HOST") != null)
         {
             OrderResponse? order = await _ordersService.GetOrderByCondition(filter);
            
@@ -55,7 +55,7 @@ public class OrdersController : ControllerBase
   [HttpGet("search/productid/{productID}")]
   public async Task<IEnumerable<OrderResponse?>> GetOrdersByProductID(Guid productID)
   {
-        if (Environment.GetEnvironmentVariable("MONGODB_HOST") == null)
+        if (Environment.GetEnvironmentVariable("MONGODB_HOST") != null)
         {
             FilterDefinition<Order> filter = Builders<Order>.Filter.ElemMatch(temp => temp.OrderItems,
       Builders<OrderItem>.Filter.Eq(tempProduct => tempProduct.ProductID, productID)
@@ -78,7 +78,7 @@ public class OrdersController : ControllerBase
   {
       
 
-        if (Environment.GetEnvironmentVariable("MONGODB_HOST") == null)
+        if (Environment.GetEnvironmentVariable("MONGODB_HOST") != null)
         {
             FilterDefinition<Order> filter = Builders<Order>.Filter.Eq(temp => temp.UserID, userID);
 
