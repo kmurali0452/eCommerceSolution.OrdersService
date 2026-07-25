@@ -487,6 +487,7 @@ new Order
   {
         if (ISConnectionEstablished())
         {
+            //var v= (await _orders.FindAsync(Builders<Order>.Filter.Empty)).ToList();
             return (await _orders.FindAsync(Builders<Order>.Filter.Empty)).ToList();
         }
         else {
@@ -530,7 +531,13 @@ new Order
     {
         if (Environment.GetEnvironmentVariable("MONGODB_HOST") != null && Environment.GetEnvironmentVariable("MONGODB_PORT") != null)
         {
-            return true;
+
+            var state = _orders.Database.Client.Cluster.Description.State;
+            //Cluster.Description.State;
+            if (state == MongoDB.Driver.Core.Clusters.ClusterState.Connected)
+                return true;
+            else
+                return false;
         }
         else
         {
