@@ -3,6 +3,9 @@ using eCommerce.OrdersMicroservice.BusinessLogicLayer;
 using FluentValidation.AspNetCore;
 using eCommerce.OrdersMicroservice.API.Middleware;
 using eCommerce.OrdersMicroservice.BusinessLogicLayer.HttpClients;
+using Polly;
+using eCommerce.OrdersMicroservice.BusinessLogicLayer.Policies;
+
 var builder = WebApplication.CreateBuilder(args);
 
 //Add DAL and BLL services
@@ -34,12 +37,32 @@ builder.Services.AddCors(options =>
                           .AllowAnyMethod()
                           .AllowAnyHeader());
 });
-builder.Services.AddHttpClient<UsersMicroserviceClient>(client => {
-    client.BaseAddress = new Uri($"https://{builder.Configuration["UsersMicroserviceName"]}:{builder.Configuration["UsersMicroservicePort"]}");
-});
+builder.Services.AddTransient<IUsersMicroservicePolicies, UsersMicroservicePolicies>();
+builder.Services.AddTransient<IProductsMicroservicePolicies, ProductsMicroservicePolicies>();
+builder.Services.AddTransient<IPollyPolicies, PollyPolicies>();
+builder.Services.AddHttpClient<UsersMicroserviceClient>(client =>
+{
+  client.BaseAddress = new Uri($"http://{builder.Configuration["UsersMicroserviceName"]}:{builder.Configuration["UsersMicroservicePort"]}");
+})
+ 
+
+  .AddPolicyHandler(
+   builder.Services.BuildServiceProvider().GetRequiredService<IUsersMicroservicePolicies>().GetCombinedPolicy())
+   ;
+   
 builder.Services.AddHttpClient<ProductsMicroserviceClient>(client => {
   client.BaseAddress = new Uri($"http://{builder.Configuration["ProductsMicroserviceName"]}:{builder.Configuration["ProductsMicroservicePort"]}");
-});
+})
+  .AddPolicyHandler(
+   builder.Services.BuildServiceProvider().GetRequiredService<IProductsMicroservicePolicies>().GetFallbackPolicy())
+
+  .AddPolicyHandler(
+   builder.Services.BuildServiceProvider().GetRequiredService<IProductsMicroservicePolicies>().GetBulkheadIsolationPolicy())
+
+  ;
+
+
+
 var app = builder.Build();
 
 app.UseExceptionHandlingMiddleware();
