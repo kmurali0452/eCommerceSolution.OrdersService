@@ -38,11 +38,23 @@ public class ProductsMicroserviceClient
       }
 
 
+      //HttpResponseMessage response = await _httpClient.GetAsync($"/gateway/products/search/product-id/{productID}");
       HttpResponseMessage response = await _httpClient.GetAsync($"/api/products/search/product-id/{productID}");
-
       if (!response.IsSuccessStatusCode)
       {
-        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+        if (response.StatusCode == System.Net.HttpStatusCode.ServiceUnavailable)
+        {
+          ProductDTO? productFromFallback = await response.Content.ReadFromJsonAsync<ProductDTO>();
+
+          if (productFromFallback == null)
+          {
+            throw new NotImplementedException("Fallback policy was not implemented");
+          }
+
+          return productFromFallback;
+        }
+
+        else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
         {
           return null;
         }

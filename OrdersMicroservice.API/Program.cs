@@ -69,7 +69,7 @@ app.UseExceptionHandlingMiddleware();
 app.UseRouting();
 
 //Cors
-app.UseCors();
+app.UseCors("AllowAll");
 
 //Swagger
 app.UseSwagger();
